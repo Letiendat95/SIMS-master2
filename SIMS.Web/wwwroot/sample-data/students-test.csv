@@ -1,0 +1,11 @@
+FirstName,LastName,Username,Email,Password,DateOfBirth,PhoneNumber,Address,City,AcademicProgram
+Alice,Nguyen,alice.nguyen,alice.nguyen@student.sims.edu,,2004-03-12,555-1001,12 Le Loi,Da Nang,Computer Science
+Bao,Tran,bao.tran,bao.tran@student.sims.edu,,2003-11-05,555-1002,"34 Tran Phu, Quan 1",Ho Chi Minh,Business
+Chi,Le,chi.le,chi.le@student.sims.edu,Secret@123,2005-01-20,555-1003,7 Hai Ba Trung,Ha Noi,Mathematics
+Duc,Pham,duc.pham,duc.pham@student.sims.edu,,2002-07-30,555-1004,88 Nguyen Hue,Hue,Physics
+Giang,Hoang,giang.hoang,giang.hoang@student.sims.edu,,2004-09-14,555-1005,5 Le Duan,Can Tho,Information Technology
+,Vu,missing.first,missing.first@student.sims.edu,,2003-02-02,555-1006,1 Quang Trung,Ha Noi,Business
+Ha,Do,bad.email,ha.do-invalid-email,,2003-05-19,555-1007,9 Ba Trieu,Da Nang,Physics
+Hai,Bui,bad.date,hai.bui@student.sims.edu,,31-13-2003,555-1008,10 Ly Thuong Kiet,Ha Noi,Mathematics
+Hoa,Ngo,alice.nguyen,hoa.ngo@student.sims.edu,,2004-04-04,555-1009,22 Tran Hung Dao,Hue,Computer Science
+Hung,Dang,hung.dang,hung.dang@student.sims.edu,,2002-12-25,555-1010,3 Dien Bien Phu,Ho Chi Minh,Electronics

@@ -1,0 +1,81 @@
+@model SIMS.Web.Models.Course
+@{
+    ViewData["Title"] = "Create Course";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header accent-blue">
+                <h5><i class="bi bi-plus-circle-fill me-2"></i>Create New Course</h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CourseCode" class="form-label">Course Code</label>
+                            <input asp-for="CourseCode" class="form-control" placeholder="e.g. CS101" />
+                            <span asp-validation-for="CourseCode" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CourseName" class="form-label">Course Name</label>
+                            <input asp-for="CourseName" class="form-control" placeholder="Enter course name" />
+                            <span asp-validation-for="CourseName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- ✅ THÊM: Faculty Selection Dropdown -->
+                        <div class="col-md-6">
+                            <label asp-for="FacultyId" class="form-label">Assign Faculty</label>
+                            <select asp-for="FacultyId" class="form-select">
+                                <option value="">-- Select Faculty --</option>
+                                @if (ViewBag.Faculties != null)
+                                {
+                                    @foreach (var faculty in ViewBag.Faculties)
+                                    {
+                                        <option value="@faculty.UserId">
+                                            @faculty.FirstName @faculty.LastName (@faculty.Department)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="FacultyId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"
+                                      placeholder="Enter course description"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Credits" class="form-label">Credits</label>
+                            <input asp-for="Credits" type="number" class="form-control" min="1" max="4" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Capacity" class="form-label">Capacity</label>
+                            <input asp-for="Capacity" type="number" class="form-control" min="1" max="100" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label">Start Date</label>
+                            <input asp-for="StartDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label">End Date</label>
+                            <input asp-for="EndDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="divider mt-4"></div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Create Course
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,81 @@
+@model SIMS.Web.Models.Faculty
+@{
+    ViewData["Title"] = "Edit Faculty";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header accent-warning">
+                <h5><i class="bi bi-pencil-fill me-2"></i>Edit Faculty — @Model.Username</h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" asp-route-id="@Model.UserId" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+                    <!-- Profile Picture -->
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                        {
+                            <img src="@Model.ProfilePictureUrl" alt="Avatar"
+                                 class="rounded-circle border shadow mb-2"
+                                 style="width:100px;height:100px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                 style="width:100px;height:100px;background:linear-gradient(135deg,#059669,#10b981);">
+                                <i class="bi bi-person-fill text-white" style="font-size:2.5rem;"></i>
+                            </div>
+                        }
+                        <div>
+                            <label class="form-label small text-muted">Profile Picture</label>
+                            <input type="file" name="profilePicture" class="form-control form-control-sm"
+                                   accept=".jpg,.jpeg,.png,.gif,.webp" />
+                            <small class="text-muted">Max 5MB. JPG, PNG, GIF, WebP.</small>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-blue">*</span></label>
+                            <input type="text" name="firstName" value="@Model.FirstName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name <span class="text-blue">*</span></label>
+                            <input type="text" name="lastName" value="@Model.LastName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" value="@Model.Username" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address <span class="text-blue">*</span></label>
+                            <input type="email" name="email" value="@Model.Email" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department <span class="text-blue">*</span></label>
+                            <select name="department" class="form-select" required>
+                                <option value="">-- Select Department --</option>
+                                @foreach (var dept in new[] { "Computer Science", "Mathematics", "Physics", "Chemistry", "Business", "Engineering" })
+                                {
+                                    <option value="@dept" selected="@(Model.Department == dept)">@dept</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date Hired</label>
+                            <input type="text" value="@Model.DateHired.ToString("MMM dd, yyyy")" class="form-control" disabled />
+                        </div>
+                    </div>
+                    <div class="divider mt-4"></div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Detail" asp-route-id="@Model.UserId" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

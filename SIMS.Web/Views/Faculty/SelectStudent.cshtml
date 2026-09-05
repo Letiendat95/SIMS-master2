@@ -1,0 +1,95 @@
+﻿@using System.Linq
+@model List<SIMS.Web.Models.Enrollment>
+@{
+    ViewData["Title"] = "Input Grade";
+    var course = Model.FirstOrDefault()?.Course;
+}
+
+<div class="page-header">
+    <div class="page-title">Input Grade</div>
+    <div class="page-subtitle">Step 2 — Assign grades to students</div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+    </div>
+}
+
+<div class="card">
+    <div class="card-header accent-success">
+        <h5><i class="bi bi-pencil-square me-2"></i>Grade Students</h5>
+        <span class="badge" style="background:rgba(255,255,255,.2);color:white;">
+            @course?.CourseCode — @course?.CourseName
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Current Grade</th>
+                        <th>Assign Grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrollment in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1a2744,#2563eb);display:flex;align-items:center;justify-content:center;color:white;font-size:.75rem;font-weight:700;">
+                                        @(enrollment.Student?.FirstName?.Length > 0 ? enrollment.Student.FirstName[0] : '?')
+                                    </div>
+                                    <strong>@enrollment.Student?.FirstName @enrollment.Student?.LastName</strong>
+                                </div>
+                            </td>
+                            <td><span class="text-muted">@enrollment.Student?.Email</span></td>
+                            <td>
+                                @if (string.IsNullOrEmpty(enrollment.Grade))
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success fs-6">@enrollment.Grade</span>
+                                }
+                            </td>
+                            <td>
+                                <form asp-action="SubmitGrade" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="enrollmentId" value="@enrollment.EnrollmentId" />
+                                    <input type="hidden" name="courseId" value="@enrollment.CourseId" />
+                                    <select name="grade" class="form-select form-select-sm" style="width:130px;" required>
+                                        <option value="">-- Grade --</option>
+                                        @foreach (var g in new[] { "A", "B", "C", "D", "F" })
+                                        {
+                                            <option value="@g" selected="@(enrollment.Grade == g)">@g</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-lg"></i> Save
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a asp-action="InputGrade" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+</div>

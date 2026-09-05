@@ -1,0 +1,148 @@
+﻿@using System.Linq
+@model SIMS.Web.Models.Faculty
+@{
+    ViewData["Title"] = "Faculty Detail";
+}
+
+<div class="row g-4">
+    <!-- Profile -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="profile-header">
+                <div class="profile-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">
+                    @(Model.Username?.Length > 0 ? char.ToUpper(Model.Username[0]) : '?')
+                </div>
+                <div class="profile-name">@Model.FirstName @Model.LastName</div>
+                <div class="profile-role">Faculty / Instructor</div>
+            </div>
+            <div class="card-body">
+                <div class="profile-field">
+                    <div class="profile-field-label">Email</div>
+                    <div class="profile-field-value">@Model.Email</div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-field-label">Department</div>
+                    <div class="profile-field-value">
+                        @if (!string.IsNullOrEmpty(Model.Department))
+                        {
+                            <span class="badge bg-info fs-6">@Model.Department</span>
+                        }
+                        else
+                        {
+
+                            <span class="text-muted">—</span>
+                        }
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <div class="profile-field-label">Date Hired</div>
+                    <div class="profile-field-value">
+                        @Model.DateHired.ToString("MMMM dd, yyyy")
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.UserId" class="btn btn-warning btn-sm">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses -->
+    <div class="col-md-8">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">@Model.Courses.Count</div>
+                        <div class="stat-label">Courses</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">
+                            @Model.Courses.Sum(c => c.Enrollments.Count)
+                        </div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon amber">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">
+                            @Model.Courses.Sum(c => c.Credits)
+                        </div>
+                        <div class="stat-label">Total Credits</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header accent-blue">
+                <h5><i class="bi bi-book-fill me-2"></i>Assigned Courses</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Courses.Any())
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-book fs-2 d-block mb-2"></i>
+                        No courses assigned yet.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Course Name</th>
+                                    <th>Credits</th>
+                                    <th>Students</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in Model.Courses)
+                                {
+                                    <tr>
+                                        <td><strong>@c.CourseCode</strong></td>
+                                        <td>@c.CourseName</td>
+                                        <td>@c.Credits</td>
+                                        <td>
+                                            <span class="badge bg-primary">
+                                                @c.Enrollments.Count / @c.Capacity
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @(c.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                                @c.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

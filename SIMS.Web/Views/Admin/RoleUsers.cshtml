@@ -1,0 +1,88 @@
+@model List<SIMS.Web.Models.User>
+@{
+    var role = (SIMS.Web.Models.Role)ViewBag.Role;
+    var allRoles = (List<SIMS.Web.Models.Role>)ViewBag.AllRoles;
+    ViewData["Title"] = $"Users — {role.RoleName}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="page-title">Users in "@role.RoleName"</div>
+        <div class="page-subtitle">@Model.Count user(s) assigned to this role</div>
+    </div>
+    <a asp-action="ManageRoles" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Roles
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header accent-navy">
+        <h5><i class="bi bi-people-fill me-2"></i>@role.RoleName Users</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No users in this role.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th class="text-end">Change Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#0ea5e9);display:flex;align-items:center;justify-content:center;color:white;font-size:.75rem;font-weight:700;flex-shrink:0;">
+                                            @user.Username?[0].ToString().ToUpper()
+                                        </div>
+                                        <strong>@user.Username</strong>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted">@user.Email</span></td>
+                                <td><span class="text-muted">@user.Username</span></td>
+                                <td class="text-end">
+                                    <form asp-action="ChangeUserRole" method="post" class="d-inline-flex gap-1 align-items-center">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@user.UserId" />
+                                        <input type="hidden" name="returnRoleId" value="@role.RoleId" />
+                                        <select name="newRoleId" class="form-select form-select-sm" style="width:auto;">
+                                            @foreach (var r in allRoles)
+                                            {
+                                                <option value="@r.RoleId" selected="@(r.RoleId == role.RoleId)">@r.RoleName</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary"
+                                                onclick="return confirm('Change role for @user.Username?')">
+                                            <i class="bi bi-check-lg"></i> Save
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

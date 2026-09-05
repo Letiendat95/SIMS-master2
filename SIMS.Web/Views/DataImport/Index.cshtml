@@ -1,0 +1,165 @@
+@model SIMS.Web.Services.CsvImport.CsvImportResult
+@{
+    ViewData["Title"] = "Import Data";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="page-title">Import Students from CSV</div>
+        <div class="page-subtitle">Bulk-load a large student dataset by streaming a CSV file into the database</div>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header accent-warning">
+                <h5><i class="bi bi-upload me-2"></i>Upload CSV</h5>
+            </div>
+            <div class="card-body p-4">
+                @* NOTE_IMPORT_BUTTON: Form chọn file + nút Import. enctype="multipart/form-data" để gửi được file.
+                   Bấm Import -> POST tới action Import (DataImportController) kèm file đã chọn. *@
+                @* NOTE_DOWNLOAD_TEMPLATE: Nút Download template -> GET action Template, tải file CSV mẫu về. *@
+                <form asp-action="Import" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">CSV file</label>
+                        <input type="file" name="file" accept=".csv" class="form-control" required />
+                        <div class="form-text">Tối đa 50 MB. Dòng đầu tiên phải là header.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Import
+                    </button>
+                    <a asp-action="Template" class="btn btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i> Download template
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header accent-danger">
+                <h5><i class="bi bi-info-circle me-2"></i>Expected format</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">Các cột theo đúng thứ tự (header ở dòng đầu):</p>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-3">
+                        <thead>
+                            <tr><th>#</th><th>Column</th><th>Bắt buộc?</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1</td><td>FirstName</td><td>Có</td></tr>
+                            <tr><td>2</td><td>LastName</td><td>Có</td></tr>
+                            <tr><td>3</td><td>Username</td><td>Có (không trùng)</td></tr>
+                            <tr><td>4</td><td>Email</td><td>Có</td></tr>
+                            <tr><td>5</td><td>Password</td><td>Trống = mật khẩu mặc định</td></tr>
+                            <tr><td>6</td><td>DateOfBirth</td><td>Tùy chọn (yyyy-MM-dd)</td></tr>
+                            <tr><td>7</td><td>PhoneNumber</td><td>Tùy chọn</td></tr>
+                            <tr><td>8</td><td>Address</td><td>Tùy chọn</td></tr>
+                            <tr><td>9</td><td>City</td><td>Tùy chọn</td></tr>
+                            <tr><td>10</td><td>AcademicProgram</td><td>Tùy chọn</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">
+                    Mật khẩu mặc định khi để trống: <code>Sims@12345</code>.
+                    File được đọc theo luồng và ghi theo lô nên xử lý được file rất lớn.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model != null)
+{
+    <div class="card mt-4">
+        <div class="card-header accent-warning">
+            <h5><i class="bi bi-clipboard-check me-2"></i>Import Result</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="bi bi-list-ol"></i></div>
+                        <div>
+                            <div class="stat-value">@Model.TotalRows</div>
+                            <div class="stat-label">Total Rows</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+                        <div>
+                            <div class="stat-value">@Model.Imported</div>
+                            <div class="stat-label">Imported</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon amber"><i class="bi bi-x-circle-fill"></i></div>
+                        <div>
+                            <div class="stat-value">@Model.Failed</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon sky"><i class="bi bi-stopwatch"></i></div>
+                        <div>
+                            <div class="stat-value">@Model.ElapsedMs ms</div>
+                            <div class="stat-label">Duration</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* NOTE_VALIDATE_ERROR: Bảng hiển thị các dòng bị từ chối — báo rõ DÒNG số mấy và LÝ DO sai. *@
+            @if (Model.Errors.Any())
+            {
+                <h6 class="text-danger"><i class="bi bi-bug me-1"></i>Rejected rows</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr><th style="width:120px;">Line</th><th>Reason</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.Errors)
+                            {
+                                <tr><td>@e.LineNumber</td><td>@e.Reason</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.ErrorsNotShown > 0)
+                {
+                    <div class="text-muted small">… và @Model.ErrorsNotShown lỗi khác không hiển thị (đã đếm vào Failed).</div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-success mb-0">
+                    <i class="bi bi-check2-all me-2"></i>Tất cả các dòng đều được nhập thành công.
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-controller="Student" asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Students
+    </a>
+</div>

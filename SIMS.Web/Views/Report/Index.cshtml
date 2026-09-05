@@ -1,0 +1,307 @@
+@model SIMS.Web.ViewModels.ReportsDashboardViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="page-title">Reports</div>
+        <div class="page-subtitle">Academic analytics and course performance</div>
+    </div>
+</div>
+
+@* NOTE_TOTAL_STATS: 4 ô thống kê nhanh (Total Students, Total Courses, Average GPA, Overall Pass Rate).
+   Toàn bộ số này lấy từ Model do ReportService.GetReportsDashboardAsync() tính sẵn. *@
+<!-- Overall Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>  <!-- stat-icon blue = mau , bi bi-people-fill = icon -->
+            <div>
+                <div class="stat-value">@Model.TotalStudents</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-book-fill"></i></div>  <!-- stat-icon green = mau , bi bi-book-fill = icon -->
+            <div>
+                <div class="stat-value">@Model.TotalCourses</div>
+                <div class="stat-label">Total Courses</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-award-fill"></i></div>  <!-- stat-icon amber = mau , bi bi-award-fill = icon -->
+            <div>
+                <div class="stat-value">@Model.OverallAvgGPA.ToString("F2")</div>
+                <div class="stat-label">Average GPA</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon sky"><i class="bi bi-graph-up"></i></div>  <!-- stat-icon sky = mau , bi bi-graph-up = icon -->
+            <div>
+                <div class="stat-value">@Model.OverallPassRate%</div>
+                <div class="stat-label">Overall Pass Rate</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* NOTE_PASSFAIL_OVERVIEW: Card vòng tròn Pass/Fail. Số liệu: Model.OverallPassCount (đạt),
+   Model.OverallFailCount (rớt), Model.TotalGraded (tổng đã chấm); % = Model.OverallPassRate. *@
+<!-- Pass/Fail Overview -->
+<div class="row g-4 mb-4">
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header accent-success">
+                <h5><i class="bi bi-pie-chart-fill me-2"></i>Pass / Fail Overview</h5>  <!-- accent-success = mau header , bi bi-pie-chart-fill = icon --> 
+            </div>
+            <div class="card-body text-center">
+                @if (Model.TotalGraded > 0)
+                {
+                    <div style="position:relative;width:160px;height:160px;margin:0 auto 20px;">
+                        <svg viewBox="0 0 36 36" style="width:100%;height:100%;transform:rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#e9ecef" stroke-width="3" />
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#198754" stroke-width="3"
+                                  stroke-dasharray="@Model.OverallPassRate, 100" />
+                        </svg>
+                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8rem;font-weight:700;">
+                            @Model.OverallPassRate%
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-around">
+                        <div>
+                            <div class="fw-bold text-success fs-4">@Model.OverallPassCount</div>
+                            <div class="text-muted small">Passed</div>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-danger fs-4">@Model.OverallFailCount</div>
+                            <div class="text-muted small">Failed</div>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-primary fs-4">@Model.TotalGraded</div>
+                            <div class="text-muted small">Total Graded</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="py-4 text-muted">
+                        <i class="bi bi-pie-chart fs-2 d-block mb-2"></i>
+                        No grade data yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* NOTE_GRADE_DISTRIBUTION: Biểu đồ thanh phân bố điểm A-F toàn trường.
+       Cộng tổng GradeACount..GradeFCount của TẤT CẢ khóa; mỗi thanh = số lượng / TotalGraded * 100. *@
+    <!-- Grade Distribution Overall -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header accent-blue">
+                <h5><i class="bi bi-bar-chart-fill me-2"></i>Overall Grade Distribution</h5>  <!-- accent-blue = mau header , bi bi-bar-chart-fill = icon -->
+            </div>
+            <div class="card-body">
+                @{
+                    var totalGraded = Model.TotalGraded;
+                    var allA = Model.GradeReports.Sum(r => r.GradeACount);
+                    var allB = Model.GradeReports.Sum(r => r.GradeBCount);
+                    var allC = Model.GradeReports.Sum(r => r.GradeCCount);
+                    var allD = Model.GradeReports.Sum(r => r.GradeDCount);
+                    var allF = Model.GradeReports.Sum(r => r.GradeFCount);
+                    var grades = new[] {
+                        ("A", allA, "#198754"),
+                        ("B", allB, "#0d6efd"),
+                        ("C", allC, "#ffc107"),
+                        ("D", allD, "#fd7e14"),
+                        ("F", allF, "#dc3545")
+                    };
+                }
+                @if (totalGraded > 0)
+                {
+                    foreach (var (grade, count, color) in grades)
+                    {
+                        var pct = totalGraded > 0 ? (double)count / totalGraded * 100 : 0;
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="fw-bold me-3" style="width:24px;">@grade</span>
+                            <div class="flex-grow-1" style="height:24px;background:var(--gray-100);border-radius:var(--radius-sm);overflow:hidden;">
+                                <div style="height:100%;width:@pct.ToString("F0")%;background:@color;border-radius:var(--radius-sm);"></div>
+                            </div>
+                            <span class="ms-3 text-muted" style="width:100px;">@count (@pct.ToString("F0")%)</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">No grades recorded yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* NOTE_GRADE_REPORT_TABLE: Bảng điểm theo khóa. Dữ liệu = Model.GradeReports
+   (mỗi phần tử là 1 khóa) do ReportService dựng từ Course + Enrollments. *@
+<!-- Grade Report per Course -->
+<div class="card mb-4">
+    <div class="card-header accent-navy d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Grade Report by Course</h5>  <!-- accent-navy = mau header , bi bi-journal-text = icon -->
+        @if (Model.GradeReports.Any())
+        {
+            <a asp-action="ExportGradesCsv" class="btn btn-sm btn-light">
+                <i class="bi bi-filetype-csv me-1"></i> Export CSV
+            </a>
+        }
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.GradeReports.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No course data available.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-center">Enrolled</th>
+                            <th class="text-center">Graded</th>
+                            <th class="text-center">Avg GPA</th>
+                            <th class="text-center">Pass Rate</th>
+                            <th class="text-center">A</th>
+                            <th class="text-center">B</th>
+                            <th class="text-center">C</th>
+                            <th class="text-center">D</th>
+                            <th class="text-center">F</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.GradeReports.OrderByDescending(r => r.PassRate))
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@r.CourseCode</strong>
+                                    <br /><small class="text-muted">@r.CourseName</small>
+                                </td>
+                                <td class="text-center">@r.TotalEnrolled</td>
+                                <td class="text-center">@r.GradedCount</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">@r.AverageGPA.ToString("F2")</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (r.PassRate >= 80)
+                                    {
+                                        <span class="badge bg-success">@r.PassRate%</span>
+                                    }
+                                    else if (r.PassRate >= 50)
+                                    {
+                                        <span class="badge bg-warning">@r.PassRate%</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@r.PassRate%</span>
+                                    }
+                                </td>
+                                <td class="text-center"><span class="text-success fw-bold">@r.GradeACount</span></td>
+                                <td class="text-center"><span class="text-primary fw-bold">@r.GradeBCount</span></td>
+                                <td class="text-center"><span class="text-warning fw-bold">@r.GradeCCount</span></td>
+                                <td class="text-center"><span class="text-orange fw-bold">@r.GradeDCount</span></td>
+                                <td class="text-center"><span class="text-danger fw-bold">@r.GradeFCount</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* NOTE_ATTENDANCE_REPORT_TABLE: Bảng điểm danh theo khóa. Dữ liệu = Model.AttendanceReports
+   do ReportService dựng từ bảng Attendances. *@
+<!-- Attendance Report per Course -->
+<div class="card mb-4">
+    <div class="card-header accent-success d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-calendar-check-fill me-2"></i>Attendance Report by Course</h5>  <!-- accent-success = mau header , bi bi-calendar-check-fill = icon -->
+        @if (Model.AttendanceReports.Any(a => a.TotalRecords > 0))
+        {
+            <a asp-action="ExportAttendanceCsv" class="btn btn-sm btn-light">
+                <i class="bi bi-filetype-csv me-1"></i> Export CSV
+            </a>
+        }
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.AttendanceReports.Any() || Model.AttendanceReports.All(a => a.TotalRecords == 0))
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                No attendance data available.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-center">Sessions</th>
+                            <th class="text-center">Total Records</th>
+                            <th class="text-center">Present</th>
+                            <th class="text-center">Absent</th>
+                            <th class="text-center">Attendance Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.AttendanceReports.Where(a => a.TotalRecords > 0).OrderByDescending(a => a.AttendanceRate))
+                        {
+                            var absent = r.TotalRecords - r.PresentCount;
+                            <tr>
+                                <td>
+                                    <strong>@r.CourseCode</strong>
+                                    <br /><small class="text-muted">@r.CourseName</small>
+                                </td>
+                                <td class="text-center">@r.TotalSessions</td>
+                                <td class="text-center">@r.TotalRecords</td>
+                                <td class="text-center"><span class="text-success fw-bold">@r.PresentCount</span></td>
+                                <td class="text-center"><span class="text-danger fw-bold">@absent</span></td>
+                                <td class="text-center">
+                                    @if (r.AttendanceRate >= 80)
+                                    {
+                                        <span class="badge bg-success">@r.AttendanceRate%</span>
+                                    }
+                                    else if (r.AttendanceRate >= 50)
+                                    {
+                                        <span class="badge bg-warning">@r.AttendanceRate%</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@r.AttendanceRate%</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>

@@ -1,0 +1,128 @@
+﻿@using System.Linq
+@model List<SIMS.Web.Models.Attendance>
+@{
+    ViewData["Title"] = "My Attendance";
+    var present = (int)ViewBag.Present;
+    var absent = (int)ViewBag.Absent;
+    var total = present + absent;
+    var rate = total > 0 ? (double)present / total * 100 : 0;
+}
+
+<div class="page-header">
+    <div class="page-title">My Attendance</div>
+    <div class="page-subtitle">@ViewBag.CourseName</div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+                <div class="stat-value">@present</div>
+                <div class="stat-label">Present</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fee2e2;color:#ef4444;">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+            <div>
+                <div class="stat-value">@absent</div>
+                <div class="stat-label">Absent</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-percent"></i></div>
+            <div>
+                <div class="stat-value">@rate.ToString("F0")%</div>
+                <div class="stat-label">Attendance Rate</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rate bar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="fw-600">Overall Attendance Rate</span>
+            <span class="fw-700 @(rate >= 80 ? "text-success" : "text-danger")">
+                @rate.ToString("F1")%
+            </span>
+        </div>
+        <div class="progress" style="height:12px;">
+            <div class="progress-bar @(rate >= 80 ? "bg-success" : "bg-warning")"
+                 style="width:@rate%"></div>
+        </div>
+        @if (rate < 80)
+        {
+            <div class="alert alert-warning mt-3 mb-0">
+                <i class="bi bi-exclamation-triangle"></i>
+                Your attendance rate is below 80%. Please attend more classes.
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Records table -->
+<div class="card">
+    <div class="card-header accent-navy">
+        <h5><i class="bi bi-calendar3 me-2"></i>Attendance Records</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                No records yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model)
+                        {
+                            <tr>
+                                <td><strong>@record.Date.ToString("dd/MM/yyyy")</strong></td>
+                                <td><span class="text-muted">@record.Date.ToString("dddd")</span></td>
+                                <td>
+                                    @if (record.IsPresent)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Present
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Absent
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+    <div class="card-footer">
+        <a asp-controller="Course" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+</div>

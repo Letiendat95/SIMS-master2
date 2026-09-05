@@ -1,0 +1,55 @@
+﻿@using System.Linq
+@model List<SIMS.Web.Models.Course>
+@{
+    ViewData["Title"] = "Attendance";
+}
+
+<div class="page-header">
+    <div class="page-title">Attendance</div>
+    <div class="page-subtitle">Select a course to take attendance</div>
+</div>
+
+<div class="card">
+    <div class="card-header accent-blue">
+        <h5><i class="bi bi-calendar-check-fill me-2"></i>Your Courses</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+                No courses available.
+            </div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var course in Model)
+                {
+                    <a asp-action="TakeAttendance" asp-route-courseId="@course.CourseId"
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:42px;height:42px;background:linear-gradient(135deg,#1a2744,#2563eb);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.75rem;flex-shrink:0;">
+                                @course.Credits cr
+                            </div>
+                            <div>
+                                <strong>@course.CourseCode</strong> — @course.CourseName
+                                <br /><small class="text-muted">@course.Credits credits · Capacity @course.Capacity</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a asp-action="History" asp-route-courseId="@course.CourseId"
+                               class="btn btn-sm btn-secondary"
+                               onclick="event.stopPropagation()">
+                                <i class="bi bi-clock-history"></i> History
+                            </a>
+                            <span class="badge bg-primary">
+                                <i class="bi bi-arrow-right"></i> Take Attendance
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

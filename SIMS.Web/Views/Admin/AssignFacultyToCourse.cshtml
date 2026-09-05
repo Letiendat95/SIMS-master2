@@ -1,0 +1,68 @@
+@model SIMS.Web.ViewModels.AssignFacultyToCourseViewModel
+@{
+    ViewData["Title"] = "Assign Faculty to Course";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header accent-amber">
+                <h5><i class="bi bi-person-badge-fill me-2"></i>Assign Faculty to Course</h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AssignFacultyToCourse" method="post">
+                    @Html.AntiForgeryToken()
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Select Faculty</label>
+                            <select asp-for="FacultyId" class="form-select">
+                                <option value="">-- Choose a faculty member --</option>
+                                @if (Model.Faculties != null)
+                                {
+                                    @foreach (var f in Model.Faculties)
+                                    {
+                                        <option value="@f.UserId">@f.FirstName @f.LastName (@f.Department)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="FacultyId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Select Course</label>
+                            <select asp-for="CourseId" class="form-select">
+                                <option value="">-- Choose a course --</option>
+                                @if (Model.Courses != null)
+                                {
+                                    @foreach (var c in Model.Courses)
+                                    {
+                                        <option value="@c.CourseId">@c.CourseCode — @c.CourseName</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="divider mt-4"></div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Assign Faculty
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

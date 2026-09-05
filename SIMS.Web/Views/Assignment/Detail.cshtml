@@ -1,0 +1,128 @@
+﻿@using System.Linq
+@model SIMS.Web.Models.Assignment
+@{
+    ViewData["Title"] = "Assignment Detail";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-4"><i class="bi bi-check-circle"></i> @TempData["Success"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header accent-warning">
+        <h5><i class="bi bi-file-earmark-text me-2"></i>@Model.Title</h5>
+        <span class="badge @(Model.DueDate < DateTime.Now ? "bg-danger" : "bg-success")">
+            Due: @Model.DueDate.ToString("dd/MM/yyyy HH:mm")
+        </span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">@Model.Description</p>
+        <div class="d-flex gap-4">
+            <span><strong>Course:</strong> @Model.Course?.CourseName</span>
+            <span><strong>Submissions:</strong> @Model.Submissions.Count</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header accent-navy">
+        <h5><i class="bi bi-upload me-2"></i>Submissions</h5>
+        <span class="badge" style="background:rgba(255,255,255,.15);color:white;">
+            @Model.Submissions.Count total
+        </span>
+    </div>
+    <div class="card-body @(!Model.Submissions.Any() ? "" : "p-0")">
+        @if (!Model.Submissions.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No submissions yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>File</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th>Grade</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sub in Model.Submissions)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@sub.Student?.FirstName @sub.Student?.LastName</strong>
+                                    <br /><small class="text-muted">@sub.Student?.Email</small>
+                                </td>
+                                <td>
+                                    <a asp-action="Download" asp-route-submissionId="@sub.SubmissionId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> @sub.FileName
+                                    </a>
+                                </td>
+                                <td><span class="text-muted">@sub.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</span></td>
+                                <td>
+                                    <span class="badge @(sub.IsGraded ? "bg-success" : "bg-warning")">
+                                        @(sub.IsGraded ? "Graded" : "Pending")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (sub.IsGraded)
+                                    {
+                                        <span class="badge bg-info fs-6">@sub.Grade</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-success"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#grade-@sub.SubmissionId">
+                                        <i class="bi bi-pencil-square"></i> Grade
+                                    </button>
+                                    <div class="collapse mt-2 p-2 bg-light rounded"
+                                         id="grade-@sub.SubmissionId">
+                                        <form asp-action="Grade" method="post">
+                                            <input type="hidden" name="submissionId" value="@sub.SubmissionId" />
+                                            <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
+                                            <select name="grade" class="form-select form-select-sm mb-2" required>
+                                                <option value="">-- Grade --</option>
+                                                @foreach (var g in new[] { "A", "B", "C", "D", "F" })
+                                                {
+                                                    <option value="@g" selected="@(sub.Grade == g)">@g</option>
+                                                }
+                                            </select>
+                                            <textarea name="feedback" class="form-control form-control-sm mb-2"
+                                                      rows="2" placeholder="Feedback (optional)">@sub.Feedback</textarea>
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                Save Grade
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-controller="Course" asp-action="Detail"
+       asp-route-id="@Model.CourseId" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Course
+    </a>
+</div>

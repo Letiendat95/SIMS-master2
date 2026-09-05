@@ -1,0 +1,110 @@
+@model SIMS.Web.ViewModels.AssignStudentToCourseViewModel
+@{
+    ViewData["Title"] = "Assign Student to Course";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header accent-blue">
+                <h5><i class="bi bi-person-plus-fill me-2"></i>Assign Student to Course</h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AssignStudentToCourse" method="post">
+                    @Html.AntiForgeryToken()
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Select Student(s)</label>
+
+                            <input type="text" id="studentSearch" class="form-control mb-2"
+                                   placeholder="Search by name or email..." />
+
+                            <div class="border rounded p-3" id="studentListBox" style="max-height: 350px; overflow-y: auto;">
+                                @if (Model.Students != null)
+                                {
+                                    @for (int i = 0; i < Model.Students.Count; i++)
+                                    {
+                                        <div class="form-check py-1 student-item"
+                                             data-search="@($"{Model.Students[i].FirstName} {Model.Students[i].LastName} {Model.Students[i].Email}".ToLower())">
+                                            <input type="checkbox" class="form-check-input"
+                                                   name="StudentIds" value="@Model.Students[i].UserId"
+                                                   id="student_@Model.Students[i].UserId" />
+                                            <label class="form-check-label" for="student_@Model.Students[i].UserId">
+                                                @Model.Students[i].FirstName @Model.Students[i].LastName (@Model.Students[i].Email)
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div id="noStudentFound" class="text-muted small mt-1" style="display:none;">
+                                No students found.
+                            </div>
+
+                            <span asp-validation-for="StudentIds" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Select Course</label>
+                            <select asp-for="CourseId" class="form-select">
+                                <option value="">-- Choose a course --</option>
+                                @if (Model.Courses != null)
+                                {
+                                    @foreach (var c in Model.Courses)
+                                    {
+                                        <option value="@c.CourseId">@c.CourseCode — @c.CourseName</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="divider mt-4"></div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Assign Student
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('studentSearch').addEventListener('input', function() {
+            const keyword = this.value.trim().toLowerCase();
+            const items = document.querySelectorAll('.student-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const match = item.dataset.search.includes(keyword);
+                item.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+
+            document.getElementById('noStudentFound').style.display =
+                visibleCount === 0 ? 'block' : 'none';
+        });
+    </script>
+}

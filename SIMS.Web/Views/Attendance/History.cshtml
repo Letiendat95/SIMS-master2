@@ -1,0 +1,139 @@
+﻿@using System.Linq
+@model List<SIMS.Web.Models.Attendance>
+@{
+    ViewData["Title"] = "Attendance History";
+    var summary = ViewBag.Summary as Dictionary<int, (int Present, int Absent)>
+        ?? new Dictionary<int, (int, int)>();
+    var grouped = Model.GroupBy(a => a.Date.Date).OrderByDescending(g => g.Key);
+}
+
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <div class="page-title">Attendance History</div>
+        <div class="page-subtitle">@ViewBag.CourseName</div>
+    </div>
+    <a asp-action="TakeAttendance" asp-route-courseId="@ViewBag.CourseId"
+       class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Take Attendance
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+<!-- Summary -->
+<div class="card mb-4">
+    <div class="card-header accent-info">
+        <h5><i class="bi bi-bar-chart-fill me-2"></i>Attendance Summary</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!summary.Any())
+        {
+            <div class="text-center py-4 text-muted">No attendance records yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th class="text-center">Present</th>
+                            <th class="text-center">Absent</th>
+                            <th>Attendance Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in summary)
+                        {
+                            var total = entry.Value.Present + entry.Value.Absent;
+                            var rate = total > 0 ? (double)entry.Value.Present / total * 100 : 0;
+                            var student = Model.FirstOrDefault(a => a.StudentId == entry.Key)?.Student;
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1a2744,#2563eb);display:flex;align-items:center;justify-content:center;color:white;font-size:.7rem;font-weight:700;">
+                                            @(student?.FirstName?.Length > 0 ? student.FirstName[0] : '?')
+                                        </div>
+                                        @student?.FirstName @student?.LastName
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">@entry.Value.Present</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger">@entry.Value.Absent</span>
+                                </td>
+                                <td style="min-width:200px;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height:8px;">
+                                            <div class="progress-bar @(rate >= 80 ? "bg-success" : "bg-warning")"
+                                                 style="width:@rate%"></div>
+                                        </div>
+                                        <small class="fw-600">@rate.ToString("F0")%</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Daily records -->
+<div class="card">
+    <div class="card-header accent-navy">
+        <h5><i class="bi bi-calendar3 me-2"></i>Daily Records</h5>
+        <span class="badge" style="background:rgba(255,255,255,.15);color:white;">
+            @grouped.Count() session(s)
+        </span>
+    </div>
+    <div class="card-body">
+        @if (!grouped.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                No records yet.
+            </div>
+        }
+        else
+        {
+            @foreach (var group in grouped)
+            {
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-calendar-date text-muted"></i>
+                        <strong>@group.Key.ToString("dddd, dd MMMM yyyy")</strong>
+                        <span class="badge bg-success ms-1">
+                            @group.Count(r => r.IsPresent) present
+                        </span>
+                        <span class="badge bg-danger">
+                            @group.Count(r => !r.IsPresent) absent
+                        </span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var record in group.OrderBy(r => r.Student?.FirstName))
+                        {
+                            <span class="badge p-2 @(record.IsPresent ? "bg-success" : "bg-danger")">
+                                <i class="bi @(record.IsPresent ? "bi-check-circle" : "bi-x-circle") me-1"></i>
+                                @record.Student?.FirstName @record.Student?.LastName
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="divider"></div>
+            }
+        }
+    </div>
+    <div class="card-footer">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+</div>

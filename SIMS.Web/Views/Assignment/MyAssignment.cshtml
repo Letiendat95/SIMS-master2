@@ -1,0 +1,127 @@
+﻿@model SIMS.Web.Models.Assignment
+@{
+    ViewData["Title"] = "Submit Assignment";
+    var submission = ViewBag.Submission as SIMS.Web.Models.Submission;
+    var isPastDue = Model.DueDate < DateTime.Now;
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success mb-4"><i class="bi bi-check-circle"></i> @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-4"><i class="bi bi-exclamation-circle"></i> @TempData["Error"]</div>
+        }
+
+        <!-- Assignment info -->
+        <div class="card mb-4">
+            <div class="card-header accent-warning">
+                <h5><i class="bi bi-file-earmark-text me-2"></i>@Model.Title</h5>
+                <span class="badge @(isPastDue ? "bg-danger" : "bg-success")">
+                    <i class="bi @(isPastDue ? "bi-clock-history" : "bi-clock")"></i>
+                    @Model.DueDate.ToString("dd/MM/yyyy HH:mm")
+                </span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">@Model.Description</p>
+                <small class="text-muted">Course: <strong>@Model.Course?.CourseName</strong></small>
+            </div>
+        </div>
+
+        @if (submission != null)
+        {
+            <!-- Already submitted -->
+            <div class="card">
+                <div class="card-header accent-success">
+                    <h5><i class="bi bi-check-circle-fill me-2"></i>Submission Received</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="profile-field-label">File</div>
+                            <a asp-action="Download" asp-route-submissionId="@submission.SubmissionId"
+                               class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="bi bi-file-earmark"></i> @submission.FileName
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-field-label">Submitted At</div>
+                            <div class="profile-field-value">@submission.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <h6 class="mb-3">Grade & Feedback</h6>
+                    @if (submission.IsGraded)
+                    {
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#0ea5e9);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:1.8rem;font-weight:800;color:white;">
+                                    @submission.Grade
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="profile-field-label">Feedback</div>
+                                <p class="text-muted mb-0">
+                                    @(string.IsNullOrEmpty(submission.Feedback)
+                                        ? "No feedback provided."
+                                        : submission.Feedback)
+                                </p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-hourglass-split"></i>
+                            Your submission is pending review by the instructor.
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Not yet submitted -->
+            <div class="card">
+                <div class="card-header accent-blue">
+                    <h5><i class="bi bi-upload me-2"></i>Submit Your Work</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (isPastDue)
+                    {
+                        <div class="alert alert-danger mb-4">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            The deadline has passed. Late submissions may not be accepted.
+                        </div>
+                    }
+                    <form asp-action="Submit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
+                        <div class="mb-4">
+                            <label class="form-label">Upload File</label>
+                            <input type="file" name="file" class="form-control"
+                                   accept=".pdf,.doc,.docx,.zip" required />
+                            <small class="text-muted mt-1 d-block">
+                                <i class="bi bi-info-circle"></i>
+                                Accepted: PDF, Word (.doc, .docx), ZIP — Max 10MB
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100"
+                            @(isPastDue ? "disabled" : "")>
+                            <i class="bi bi-upload"></i> Submit Assignment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="mt-4">
+            <a asp-controller="Course" asp-action="Detail"
+               asp-route-id="@Model.CourseId" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Course
+            </a>
+        </div>
+    </div>
+</div>

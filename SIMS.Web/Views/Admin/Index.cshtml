@@ -1,0 +1,293 @@
+@using System.Linq
+@model List<SIMS.Web.Models.Student>
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var dash = ViewBag.Dashboard as SIMS.Web.ViewModels.DashboardViewModel;
+}
+
+<!-- Stat cards row 1 -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="stat-value">@dash?.TotalStudents</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-person-badge-fill"></i></div>
+            <div>
+                <div class="stat-value">@dash?.TotalFaculty</div>
+                <div class="stat-label">Faculty Members</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-book-fill"></i></div>
+            <div>
+                <div class="stat-value">@dash?.TotalCourses</div>
+                <div class="stat-label">Total Courses</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon sky"><i class="bi bi-journal-check"></i></div>
+            <div>
+                <div class="stat-value">@dash?.TotalEnrollments</div>
+                <div class="stat-label">Enrollments</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stat cards row 2 -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+                <div class="stat-value">@dash?.ActiveCourses</div>
+                <div class="stat-label">Active Courses</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-calendar-check-fill"></i></div>
+            <div>
+                <div class="stat-value">@(dash?.AttendanceRate ?? 0)%</div>
+                <div class="stat-label">Attendance Rate</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-award-fill"></i></div>
+            <div>
+                <div class="stat-value">@dash?.TotalGraded</div>
+                <div class="stat-label">Graded Enrollments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon sky"><i class="bi bi-graph-up"></i></div>
+            <div>
+                <div class="stat-value">@Model.Count(s => s.EnrollmentDate.Year == DateTime.Now.Year)</div>
+                <div class="stat-label">New This Year</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions + Search -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a asp-action="RegisterStudent" class="btn btn-success btn-lg w-100">
+            <i class="bi bi-plus-circle-fill"></i> Register New Student
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-action="ManageRoles" class="btn btn-warning btn-lg w-100">
+            <i class="bi bi-shield-check"></i> Manage Roles
+        </a>
+    </div>
+    <div class="col-md-4">
+        <form asp-action="SearchStudent" method="get" id="searchForm">
+            <div class="input-group">
+                <input name="keyword" class="form-control form-control-lg" id="searchKeyword"
+                       placeholder="Search by name, username, email, phone..." />
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <button class="btn btn-outline-secondary" type="button" id="clearBtn">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // ✅ Khi click nút Clear, xóa input và submit form (hiển thị tất cả)
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('searchKeyword').value = '';
+            document.getElementById('searchForm').submit();
+        });
+
+        // ✅ Enter key cũng search
+        document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchForm').submit();
+            }
+        });
+    </script>
+</div>
+
+<!-- Student table -->
+<div class="card">
+    <div class="card-header accent-navy">
+        <h5><i class="bi bi-people-fill me-2"></i>Student List</h5>
+        <span class="badge" style="background:rgba(255,255,255,.15);color:white;">
+            @Model.Count total
+        </span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No students found.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Program</th>
+                            <th>Enrolled</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#0ea5e9);display:flex;align-items:center;justify-content:center;color:white;font-size:.75rem;font-weight:700;flex-shrink:0;">
+                                            @(s.FirstName?.Length > 0 ? s.FirstName[0] : '?')@(s.LastName?.Length > 0 ? s.LastName[0] : '?')
+                                        </div>
+                                        <strong>@s.FirstName @s.LastName</strong>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted">@s.Username</span></td>
+                                <td>@s.Email</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(s.AcademicProgram))
+                                    {
+                                        <span class="badge bg-primary">@s.AcademicProgram</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td><span class="text-muted">@s.EnrollmentDate.ToString("MMM dd, yyyy")</span></td>
+                                <td>
+                                    <a asp-controller="Student" asp-action="Detail"
+                                       asp-route-id="@s.UserId" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a asp-action="DeleteStudent" asp-route-id="@s.UserId"
+                                       class="btn btn-sm btn-outline-danger ms-1">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Grade Distribution & Attendance -->
+<div class="row g-4 mt-2">
+    <!-- Grade Distribution -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header accent-blue">
+                <h5><i class="bi bi-bar-chart-fill me-2"></i>Grade Distribution</h5>
+            </div>
+            <div class="card-body">
+                @if (dash?.TotalGraded > 0)
+                {
+                    var total = dash.TotalGraded;
+                    var grades = new[] {
+                        ("A", dash.GradeA, "#198754"),
+                        ("B", dash.GradeB, "#0d6efd"),
+                        ("C", dash.GradeC, "#ffc107"),
+                        ("D", dash.GradeD, "#fd7e14"),
+                        ("F", dash.GradeF, "#dc3545")
+                    };
+                    foreach (var (grade, count, color) in grades)
+                    {
+                        var pct = total > 0 ? (double)count / total * 100 : 0;
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="fw-bold me-3" style="width:24px;">@grade</span>
+                            <div class="flex-grow-1" style="height:24px;background:var(--gray-100);border-radius:var(--radius-sm);overflow:hidden;">
+                                <div style="height:100%;width:@pct.ToString("F0")%;background:@color;border-radius:var(--radius-sm);transition:width 0.5s;"></div>
+                            </div>
+                            <span class="ms-3 text-muted" style="width:80px;">@count (@pct.ToString("F0")%)</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-bar-chart fs-2 d-block mb-2"></i>
+                        No grades recorded yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Summary -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header accent-success">
+                <h5><i class="bi bi-calendar-check-fill me-2"></i>Attendance Summary</h5>
+            </div>
+            <div class="card-body text-center">
+                @if (dash?.TotalAttendanceRecords > 0)
+                {
+                    <div style="position:relative;width:140px;height:140px;margin:0 auto 20px;">
+                        <svg viewBox="0 0 36 36" style="width:100%;height:100%;transform:rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#e9ecef" stroke-width="3" />
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#198754" stroke-width="3"
+                                  stroke-dasharray="@dash.AttendanceRate, 100" />
+                        </svg>
+                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8rem;font-weight:700;">
+                            @dash.AttendanceRate%
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-around mt-3">
+                        <div>
+                            <div class="fw-bold text-success fs-4">@dash.PresentCount</div>
+                            <div class="text-muted small">Present</div>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-danger fs-4">@(dash.TotalAttendanceRecords - dash.PresentCount)</div>
+                            <div class="text-muted small">Absent</div>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-primary fs-4">@dash.TotalAttendanceRecords</div>
+                            <div class="text-muted small">Total</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                        No attendance data yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
